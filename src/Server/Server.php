@@ -3,6 +3,7 @@
 namespace FlyPHP\Server;
 use FlyPHP\Config\ServerConfigSection;
 use FlyPHP\Http\Response;
+use FlyPHP\Http\TransactionHandler;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tests\Fixtures\DummyOutput;
 
@@ -63,11 +64,8 @@ class Server
             ->then(function (Connection $connection) {
                 $this->output->writeln('Incoming connection: ' . $connection);
 
-                $response = new Response();
-                $response->setBody('Hello world!');
-                $response->send($connection);
-
-                $connection->disconnect();
+                $handler = new TransactionHandler($connection);
+                $handler->handle();
             });
 
         $this->loop->run();

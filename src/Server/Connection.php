@@ -1,6 +1,7 @@
 <?php
 
 namespace FlyPHP\Server;
+
 use FlyPHP\IO\ReadBuffer;
 use FlyPHP\IO\WriteBuffer;
 
@@ -95,6 +96,14 @@ class Connection
     }
 
     /**
+     * @return ReadBuffer
+     */
+    public function getReadBuffer()
+    {
+        return $this->readBuffer;
+    }
+
+    /**
      * @return bool
      */
     public function isWritable()
@@ -103,21 +112,12 @@ class Connection
     }
 
     /**
-     * Returns the remote address for this connection.
-     *
-     * @return string
-     */
-    public function getRemoteAddress()
-    {
-        return stream_socket_get_name($this->socket, null);
-    }
-
-    /**
      * Writes data to the connection.
      *
-     * @param $data
+     * @param string $data
+     * @param bool $flush If true, force a flush after appending data to the write buffer (in addition to intermediate threshold flushing).
      */
-    public function write($data, $flush = true)
+    public function write($data, bool $flush = true)
     {
         if (!$this->isWritable()) {
             return;
@@ -128,6 +128,14 @@ class Connection
         if ($flush) {
             $this->writeBuffer->flush();
         }
+    }
+
+    /**
+     * @return WriteBuffer
+     */
+    public function getWriteBuffer()
+    {
+        return $this->writeBuffer;
     }
 
     /**
@@ -148,6 +156,16 @@ class Connection
         // Prevent the stream from blocking on fclose (PHP bug workaround) and then actually close it
         stream_set_blocking($this->socket, false);
         return fclose($this->socket);
+    }
+
+    /**
+     * Returns the remote address for this connection.
+     *
+     * @return string
+     */
+    public function getRemoteAddress()
+    {
+        return stream_socket_get_name($this->socket, null);
     }
 
     /**
