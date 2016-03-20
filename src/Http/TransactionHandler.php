@@ -75,7 +75,12 @@ class TransactionHandler
         // TODO (Wishful thinking) HTTPS / TLS
 
         $this->connection->getReadBuffer()->subscribe(function (ReadBuffer $buffer) {
-            $this->parseHttpRequest($buffer->contents());
+            try {
+                $this->parseHttpRequest($buffer->contents());
+            } catch (ParseException $ex) {
+                // TODO Send HTTP 400 error
+                $this->connection->disconnect();
+            }
         });
     }
 
@@ -104,8 +109,7 @@ class TransactionHandler
 
         // Check if we are parsing a new message, or if we are continuing to parse a request we previously started
         // parsing.
-        if (!$this->isParsing)
-        {
+        if (!$this->isParsing) {
             $this->isParsing = true;
             $this->parseOffset = 0;
             $this->request = new Request();
@@ -114,28 +118,24 @@ class TransactionHandler
         }
 
         // Parse headers line-by-line
-        while ($this->parsingHeaders)
-        {
+        while ($this->parsingHeaders) {
             // Extract the relevant part of the buffer that we have not yet processed.
             $data = substr($originalData, $this->parseOffset);
 
             // Read until the next HTTP_EOL (\r\n)
             $nextEolIdx = strpos($data, HttpMessage::HTTP_EOL);
 
-            if ($nextEolIdx === false)
-            {
+            if ($nextEolIdx === false) {
                 break;
             }
 
             $line = substr($data, 0, $nextEolIdx);
 
-            if ($this->parsingFirstLine)
-            {
+            if ($this->parsingFirstLine) {
                 // Parsing the request line: GET / HTTP/1.1
                 $parts = explode(' ', $line);
-                
-                if (count($parts) != 3)
-                {
+
+                if (count($parts) != 3) {
                     throw new ParseException("Malformatted request line: {$line}");
                 }
 
@@ -144,20 +144,15 @@ class TransactionHandler
                 $this->request->httpVersion = $parts[2];
 
                 $this->parsingFirstLine = false;
-            }
-            else if (empty($line))
-            {
+            } else if (empty($line)) {
                 // This is a blank line, which we take to mean the end of the header block
                 $this->parsingHeaders = false;
                 $this->parsingBody = true;
-            }
-            else
-            {
+            } else {
                 // Parsing a general key/value header
                 $parts = explode(': ', $line, 2);
 
-                if (count($parts) != 2)
-                {
+                if (count($parts) != 2) {
                     throw new ParseException('Encountered a malformatted request header');
                 }
 
@@ -171,8 +166,7 @@ class TransactionHandler
         }
 
         // Parse body
-        if ($this->parsingBody)
-        {
+        if ($this->parsingBody) {
             // TODO Parse request bodies
             // For now, we'll just pretend we're done
             $this->isParsing = false;
