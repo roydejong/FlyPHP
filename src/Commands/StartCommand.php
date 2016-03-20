@@ -33,12 +33,18 @@ class StartCommand extends Command
     {
         $output->writeln(sprintf('<info>Starting FlyPHP server</info> <comment>v%s</comment>', Fly::getVersionString()));
 
-        $port = intval($input->getOption('port'));
-        if ($port <= 0) $port = 8080;
+        $overridePort = intval($input->getOption('port'));
+
+        $serverConfig = Configuration::instance()->serverConfig;
+
+        if ($overridePort > 0)
+        {
+            $serverConfig->port = $overridePort;
+        }
 
         $server = new Server();
         $server->registerOutput($output);
-        $server->start(Configuration::instance()->serverConfig);
+        $server->start($serverConfig);
 
         $output->writeln('<comment>Bye</comment>');
     }
