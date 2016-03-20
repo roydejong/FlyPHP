@@ -1,0 +1,19 @@
+{
+  "name": "flyphp/flyphp",
+  "description": "HTTP Server for PHP",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Roy de Jong",
+      "email": "email@roydejong.net"
+    }
+  ],
+  "require": {
+    "symfony/console": "^3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "FlyPHP\\": "src/"
+    }
+  }
+}
