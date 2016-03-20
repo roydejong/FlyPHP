@@ -1,6 +1,7 @@
 <?php
 
 namespace FlyPHP\Server;
+use FlyPHP\Config\ServerConfigSection;
 use FlyPHP\Http\Response;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tests\Fixtures\DummyOutput;
@@ -47,16 +48,16 @@ class Server
     /**
      * Starts the server, starts the loop, begins listening for connections, and
      *
-     * @param int $port
+     * @param ServerConfigSection $configuration
      * @throws ListenerException
      */
-    public function start($port = 8080)
+    public function start(ServerConfigSection $configuration)
     {
         $this->registerSignals();
 
-        $this->output->writeln("Starting server on port {$port}...");
+        $this->output->writeln("Starting server on port {$configuration->port}...");
 
-        $this->listener = new Listener($port);
+        $this->listener = new Listener($configuration->port, $configuration->address, $configuration->backlog);
 
         $this->listener->listen($this->loop)
             ->then(function (Connection $connection) {

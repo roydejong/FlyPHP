@@ -2,7 +2,9 @@
 
 namespace FlyPHP;
 
+use FlyPHP\Commands\ConfigTestCommand;
 use FlyPHP\Commands\StartCommand;
+use FlyPHP\Config\Configuration;
 use Symfony\Component\Console\Application;
 
 /**
@@ -23,6 +25,13 @@ class Fly
      */
     public function fly()
     {
+        // Set the working directory to the fly install directory
+        if (!defined('FLY_DIR'))
+        {
+            define('FLY_DIR', realpath(__DIR__ . '/../'));
+        }
+
+        // Try to configure a better process title
         if (function_exists('cli_set_process_title'))
         {
             // this doesn't really seem to work without running as superuser nowadays
@@ -42,14 +51,27 @@ class Fly
         $this->application->setVersion(Fly::getVersionString());
         $this->application->setAutoExit(true);
         $this->application->setCatchExceptions(true);
+        $this->application->setDefaultCommand('start');
 
         // Register commands
         $this->application->addCommands([
-            new StartCommand()
+            new StartCommand(),
+            new ConfigTestCommand()
         ]);
 
+        // Load configuration file
+        $config = Configuration::instance();
+        $config->loadFrom(FLY_DIR . '/fly.yaml');
+
+        if (!$config->isValid())
+        {
+            echo "WARNING: There is a problem with your configuration file ({$config->getPath()}): {$config->getError()} - falling back to defaults." . PHP_EOL;
+            echo "For more information, use the `fly config:test` command." . PHP_EOL;
+            echo PHP_EOL;
+
+        }
+
         // Start the console application
-        $this->application->setDefaultCommand('start');
         $this->application->run();
     }
 

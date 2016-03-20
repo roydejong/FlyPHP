@@ -2,6 +2,7 @@
 
 namespace FlyPHP\Commands;
 
+use FlyPHP\Config\Configuration;
 use FlyPHP\Fly;
 use FlyPHP\Server\Server;
 use Symfony\Component\Console\Command\Command;
@@ -37,7 +38,7 @@ class StartCommand extends Command
 
         $server = new Server();
         $server->registerOutput($output);
-        $server->start($port);
+        $server->start(Configuration::instance()->serverConfig);
 
         $output->writeln('<comment>Bye</comment>');
     }
