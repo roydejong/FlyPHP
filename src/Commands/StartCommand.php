@@ -37,8 +37,7 @@ class StartCommand extends Command
 
         $serverConfig = Configuration::instance()->serverConfig;
 
-        if ($overridePort > 0)
-        {
+        if ($overridePort > 0) {
             $serverConfig->port = $overridePort;
         }
 

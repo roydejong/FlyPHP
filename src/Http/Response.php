@@ -1,6 +1,7 @@
 <?php
 
 namespace FlyPHP\Http;
+
 use FlyPHP\Fly;
 use FlyPHP\Server\Connection;
 

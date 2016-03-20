@@ -38,8 +38,7 @@ class Promise
         $this->thenCallbacks[] = $then;
 
         // If this promise is already resolved, immediately fire this callback
-        if ($this->resolved)
-        {
+        if ($this->resolved) {
             call_user_func($then, $this->resolution);
         }
     }
@@ -54,8 +53,7 @@ class Promise
         $this->resolved = true;
         $this->resolution = $resolutionValue;
 
-        foreach ($this->thenCallbacks as $callback)
-        {
+        foreach ($this->thenCallbacks as $callback) {
             $callback($resolutionValue);
         }
     }

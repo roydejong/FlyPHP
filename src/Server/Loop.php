@@ -76,15 +76,13 @@ class Loop
      */
     public function run()
     {
-        if ($this->running)
-        {
+        if ($this->running) {
             return false;
         }
 
         $this->running = true;
 
-        while ($this->running)
-        {
+        while ($this->running) {
             $this->pollStreams($this->readStreams, $this->writeStreams);
 
             // Prevent hogging the CPU to 100% if the loop isn't doing anything
@@ -103,8 +101,7 @@ class Loop
      */
     private function pollStreams(array $readStreams, array $writeStreams, int $uTimeout = 200000)
     {
-        if (empty($readStreams) && empty($writeStreams))
-        {
+        if (empty($readStreams) && empty($writeStreams)) {
             return 0;
         }
 
@@ -113,32 +110,27 @@ class Loop
         $except = null;
         $selectValue = @stream_select($readStreams, $writeStreams, $except, 0, $uTimeout);
 
-        if ($selectValue === false || $selectValue <= 0)
-        {
+        if ($selectValue === false || $selectValue <= 0) {
             // Either no streams have changed (0), or the select call was interrupted (false)
             return 0;
         }
 
         // The stream_select function has modified the $readStreams and $writeStreams arrays to only contain the
         // streams that have actually changed at this point. Iterate those and invoke callbacks.
-        foreach ($readStreams as $stream)
-        {
+        foreach ($readStreams as $stream) {
             $streamId = intval($stream);
             $callbacks = isset($this->readStreamsCallbacks[$streamId]) ? $this->readStreamsCallbacks[$streamId] : [];
 
-            foreach ($callbacks as $callback)
-            {
+            foreach ($callbacks as $callback) {
                 $callback($stream);
             }
         }
 
-        foreach ($writeStreams as $stream)
-        {
+        foreach ($writeStreams as $stream) {
             $streamId = intval($stream);
             $callbacks = isset($this->writeStreamsCallbacks[$streamId]) ? $this->writeStreamsCallbacks[$streamId] : [];
 
-            foreach ($callbacks as $callback)
-            {
+            foreach ($callbacks as $callback) {
                 $callback($stream);
             }
         }

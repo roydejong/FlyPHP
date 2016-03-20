@@ -94,8 +94,7 @@ class Listener
     {
         $clientSocket = @stream_socket_accept($readStream);
 
-        if (!$clientSocket)
-        {
+        if (!$clientSocket) {
             throw new ListenerException('Could not accept new connection');
         }
 

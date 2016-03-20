@@ -3,11 +3,8 @@
 namespace FlyPHP\Commands;
 
 use FlyPHP\Config\Configuration;
-use FlyPHP\Fly;
-use FlyPHP\Server\Server;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**

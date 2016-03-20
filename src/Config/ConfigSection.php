@@ -14,10 +14,8 @@ abstract class ConfigSection
      */
     public function fill(array $data)
     {
-        foreach ($data as $key => $value)
-        {
-            if (isset($this->$key))
-            {
+        foreach ($data as $key => $value) {
+            if (isset($this->$key)) {
                 $this->$key = $value;
             }
         }

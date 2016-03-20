@@ -26,20 +26,17 @@ class Fly
     public function fly()
     {
         // Set the working directory to the fly install directory
-        if (!defined('FLY_DIR'))
-        {
+        if (!defined('FLY_DIR')) {
             define('FLY_DIR', realpath(__DIR__ . '/../'));
         }
 
         // Try to configure a better process title
-        if (function_exists('cli_set_process_title'))
-        {
+        if (function_exists('cli_set_process_title')) {
             // this doesn't really seem to work without running as superuser nowadays
             cli_set_process_title('fly');
         }
 
-        if (function_exists('setproctitle'))
-        {
+        if (function_exists('setproctitle')) {
             // setproctitle is considered dangerous, but only because it breaks out of its memory bounds
             // luckily "fly" is equally long as the default "php", so we should be OK
             setproctitle('fly');
@@ -63,8 +60,7 @@ class Fly
         $config = Configuration::instance();
         $config->loadFrom(FLY_DIR . '/fly.yaml');
 
-        if (!$config->isValid())
-        {
+        if (!$config->isValid()) {
             echo "WARNING: There is a problem with your configuration file ({$config->getPath()}): {$config->getError()} - falling back to defaults." . PHP_EOL;
             echo "For more information, use the `fly config:test` command." . PHP_EOL;
             echo PHP_EOL;

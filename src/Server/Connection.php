@@ -51,8 +51,7 @@ class Connection
      */
     public function __construct($socket, Loop $loop)
     {
-        if (!is_resource($socket))
-        {
+        if (!is_resource($socket)) {
             throw new \InvalidArgumentException('$socket must be a valid socket resource');
         }
 
@@ -87,8 +86,7 @@ class Connection
     {
         $data = stream_socket_recvfrom($this->socket, self::$READ_BUFFER_SIZE);
 
-        if ($data === '' || $data === false || !is_resource($this->socket) || feof($this->socket))
-        {
+        if ($data === '' || $data === false || !is_resource($this->socket) || feof($this->socket)) {
             $this->disconnect();
             return null;
         }
@@ -121,15 +119,13 @@ class Connection
      */
     public function write($data, $flush = true)
     {
-        if (!$this->isWritable())
-        {
+        if (!$this->isWritable()) {
             return;
         }
 
         $this->writeBuffer->feed($data);
 
-        if ($flush)
-        {
+        if ($flush) {
             $this->writeBuffer->flush();
         }
     }
@@ -141,8 +137,7 @@ class Connection
      */
     public function disconnect()
     {
-        if (!is_resource($this->socket))
-        {
+        if (!is_resource($this->socket)) {
             // Looks like this socket was already closed.
             return false;
         }
