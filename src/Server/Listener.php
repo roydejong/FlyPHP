@@ -32,6 +32,13 @@ class Listener
     private $socket;
 
     /**
+     * The server event loop.
+     *
+     * @var Loop
+     */
+    private $loop;
+
+    /**
      * Initializes a TCP socket listener.
      *
      * @param int $port The port to bind to, e.g. 80.
@@ -56,6 +63,7 @@ class Listener
     {
         // Initialize our non-blocking socket stream
         $this->socket = @stream_socket_server("tcp://{$this->address}:{$this->port}", $errno, $errstr);
+        $this->loop = $loop;
 
         if ($this->socket === false) {
             throw new ListenerException("Could not bind to TCP socket {$this->address}:{$this->port} - {$errstr}", $errno);
@@ -91,6 +99,6 @@ class Listener
             throw new ListenerException('Could not accept new connection');
         }
 
-        return new Connection($clientSocket);
+        return new Connection($clientSocket, $this->loop);
     }
 }

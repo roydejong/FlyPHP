@@ -1,12 +1,26 @@
 <?php
 
 namespace FlyPHP\Server;
+use FlyPHP\IO\ReadBuffer;
+use FlyPHP\IO\WriteBuffer;
 
 /**
  * Represents an incoming client connection.
  */
 class Connection
 {
+    /**
+     * The size of the read buffer in bytes.
+     * Represents how much is read when incoming data is received.
+     */
+    static $READ_BUFFER_SIZE = 1024;
+
+    /**
+     * The size of the write buffer in bytes.
+     * Represents how often data is flushed to the connection.
+     */
+    static $WRITE_BUFFER_SIZE = 10;
+
     /**
      * The socket resource.
      *
@@ -15,9 +29,27 @@ class Connection
     private $socket;
 
     /**
-     * @param resource $socket
+     * The server event loop.
+     *
+     * @var Loop
      */
-    public function __construct($socket)
+    private $loop;
+
+    /**
+     * @var ReadBuffer
+     */
+    private $readBuffer;
+
+    /**
+     * @var WriteBuffer
+     */
+    private $writeBuffer;
+
+    /**
+     * @param resource $socket
+     * @param Loop $loop
+     */
+    public function __construct($socket, Loop $loop)
     {
         if (!is_resource($socket))
         {
@@ -25,8 +57,51 @@ class Connection
         }
 
         $this->socket = $socket;
+        $this->loop = $loop;
+
+        $this->readBuffer = new ReadBuffer();
+        $this->writeBuffer = new WriteBuffer($this->socket, self::$WRITE_BUFFER_SIZE);
 
         stream_set_blocking($this->socket, false);
+
+        // Await incoming data.
+        $this->loop->awaitReadable($this->socket, function () {
+            $this->readIntoBuffer();
+        });
+    }
+
+    /**
+     * @return bool
+     */
+    public function isReadable()
+    {
+        return is_resource($this->socket);
+    }
+
+    /**
+     * Reads data from the connection.
+     *
+     * @return string|null
+     */
+    private function readIntoBuffer()
+    {
+        $data = stream_socket_recvfrom($this->socket, self::$READ_BUFFER_SIZE);
+
+        if ($data === '' || $data === false || !is_resource($this->socket) || feof($this->socket))
+        {
+            $this->disconnect();
+            return null;
+        }
+
+        $this->readBuffer->feed($data);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isWritable()
+    {
+        return $this->isReadable();
     }
 
     /**
@@ -40,35 +115,23 @@ class Connection
     }
 
     /**
-     * @return bool
-     */
-    public function isReadable()
-    {
-        return is_resource($this->socket);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isWritable()
-    {
-        return $this->isReadable();
-    }
-
-    /**
      * Writes data to the connection.
      *
      * @param $data
      */
-    public function write($data)
+    public function write($data, $flush = true)
     {
         if (!$this->isWritable())
         {
             return;
         }
 
-        echo $data;
-        fwrite($this->socket, $data);
+        $this->writeBuffer->feed($data);
+
+        if ($flush)
+        {
+            $this->writeBuffer->flush();
+        }
     }
 
     /**
