@@ -1,6 +1,7 @@
 <?php
 
 namespace FlyPHP\Server;
+use FlyPHP\Http\Response;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tests\Fixtures\DummyOutput;
 
@@ -60,6 +61,11 @@ class Server
         $this->listener->listen($this->loop)
             ->then(function (Connection $connection) {
                 $this->output->writeln('Incoming connection: ' . $connection);
+
+                $response = new Response();
+                $response->setBody('Hello world!');
+                $response->send($connection);
+
                 $connection->disconnect();
             });
 

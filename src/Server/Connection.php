@@ -56,6 +56,22 @@ class Connection
     }
 
     /**
+     * Writes data to the connection.
+     *
+     * @param $data
+     */
+    public function write($data)
+    {
+        if (!$this->isWritable())
+        {
+            return;
+        }
+
+        echo $data;
+        fwrite($this->socket, $data);
+    }
+
+    /**
      * Closes the connection.
      *
      * @return bool True on success, false on failure.
