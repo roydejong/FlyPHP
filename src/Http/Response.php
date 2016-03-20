@@ -127,7 +127,11 @@ class Response extends HttpMessage
     private function prepare()
     {
         $this->setHeader('Date', (new \DateTime('UTC'))->format('D, d M Y H:i:s \G\M\T'));
-        $this->setHeader('Connection', 'close');
+
+        if (!$this->hasHeader('Connection')) {
+            $this->setHeader('Connection', 'close');
+        }
+
         $this->setHeader('Server', sprintf('fly/%s', Fly::FLY_VERSION));
 
         if (!$this->hasHeader('Content-Type')) {

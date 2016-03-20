@@ -62,7 +62,9 @@ class Server
 
         $this->listener->listen($this->loop)
             ->then(function (Connection $connection) {
-                $this->output->writeln('Incoming connection: ' . $connection);
+                $this->output->writeln('');
+                $this->output->writeln('------------------------------------------- Incoming connection: ' . $connection);
+                $this->output->writeln('');
 
                 $handler = new TransactionHandler($connection);
                 $handler->handle();

@@ -44,6 +44,11 @@ class TransactionHandler
     private $parsingBody = false;
 
     /**
+     * @var bool
+     */
+    private $keepAlive = false;
+
+    /**
      * The incoming request currently being parsed.
      *
      * @var Request
@@ -66,7 +71,6 @@ class TransactionHandler
     public function handle()
     {
         // TODO Handle timeouts
-        // TODO Support keep alive connections
         // TODO Various encodings
         // TODO Handle multiparts
         // TODO Clean up and prevent leaky memory
@@ -91,11 +95,20 @@ class TransactionHandler
      */
     public function handleRequest(Request $request)
     {
+        if ($request->hasHeader('connection') && strtolower($request->getHeader('connection')) == 'keep-alive') {
+            $this->keepAlive = true;
+        } else {
+            $this->keepAlive = false;
+        }
+
         $response = new Response();
+        $response->setHeader('Connection', 'keep-alive');
         $response->setBody("Hello world!<br />Your user agent is <b>{$request->getHeader('user-agent')}</b>");
         $response->send($this->connection);
 
-        $this->connection->disconnect();
+        if (!$this->keepAlive) {
+            $this->connection->disconnect();
+        }
     }
 
     /**
