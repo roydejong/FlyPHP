@@ -115,6 +115,7 @@ class TransactionHandler
      * Performs line-by-line parsing of an incoming request.
      *
      * @param string $data
+     * @throws ParseException
      */
     public function parseHttpRequest($data)
     {

@@ -60,11 +60,10 @@ class Server
 
         $this->listener = new Listener($configuration->port, $configuration->address, $configuration->backlog);
 
-        $timer = new Timer(function () {
-            echo 'cock';
-        }, 1, true);
-        $this->loop->addTimer($timer);
-        $timer->start();
+        $testTimer = new Timer(1, true, function (Timer $timer) {
+            echo 'tick_test';
+        });
+        $testTimer->start($this->loop);
 
         $this->listener->listen($this->loop)
             ->then(function (Connection $connection) {

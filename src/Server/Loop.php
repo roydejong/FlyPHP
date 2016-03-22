@@ -48,7 +48,7 @@ class Loop
      *
      * @var Timer[]
      */
-    private $timers;
+    private $timers = [];
 
     /**
      * Adds a read stream to the loop, and await it to be readable and non-blocking.
@@ -79,11 +79,31 @@ class Loop
     }
 
     /**
+     * Adds a timer to the loop.
+     *
      * @param Timer $timer
      */
     public function addTimer(Timer $timer)
     {
-        $this->timers[] = $timer;
+        $key = array_search($timer, $this->timers);
+
+        if ($key === false) {
+            $this->timers[] = $timer;
+        }
+    }
+
+    /**
+     * Removes a timer from the loop.
+     *
+     * @param Timer $timer
+     */
+    public function removeTimer(Timer $timer)
+    {
+        $key = array_search($timer, $this->timers);
+
+        if ($key !== false) {
+            unset($this->timers[$key]);
+        }
     }
 
     /**

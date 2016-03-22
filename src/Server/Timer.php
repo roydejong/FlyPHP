@@ -49,17 +49,24 @@ class Timer
     private $repeating;
 
     /**
+     * The loop instance this timer is running on.
+     *
+     * @var Loop
+     */
+    private $loop;
+
+    /**
      * Timer constructor.
      *
-     * @param callable $callback The callback.
      * @param float $interval Timer runtime or interval.
      * @param bool $repeating If true, set to a repeating interval timer. If false, a single runtime.
+     * @param callable $callback The callback.
      */
-    public function __construct(callable $callback, float $interval, bool $repeating = false)
+    public function __construct(float $interval, bool $repeating, callable $callback)
     {
-        $this->callback = $callback;
         $this->runTime = $interval;
         $this->repeating = $repeating;
+        $this->callback = $callback;
     }
 
     /**
@@ -91,11 +98,16 @@ class Timer
 
     /**
      * Starts, or restarts the timer.
+     *
+     * @param Loop $loop The loop to run this timer on.
      */
-    public function start()
+    public function start(Loop $loop)
     {
         $this->started = true;
         $this->startTime = microtime(true);
+
+        $this->loop = $loop;
+        $this->loop->addTimer($this);
     }
 
     /**
@@ -103,7 +115,12 @@ class Timer
      */
     public function stop()
     {
-        $this->started = false;
+        if ($this->started)
+        {
+            $this->started = false;
+            $this->loop->removeTimer($this);
+        }
+
     }
 
     /**
