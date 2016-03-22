@@ -102,7 +102,7 @@ class TransactionHandler
         }
 
         $response = new Response();
-        $response->setHeader('Connection', 'keep-alive');
+        $response->setHeader('Connection', $this->keepAlive ? 'keep-alive' : 'close');
         $response->setBody("Hello world!<br />Your user agent is <b>{$request->getHeader('user-agent')}</b>");
         $response->send($this->connection);
 
