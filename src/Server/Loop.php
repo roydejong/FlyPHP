@@ -44,6 +44,13 @@ class Loop
     private $writeStreamsCallbacks = [];
 
     /**
+     * A list of timers.
+     *
+     * @var Timer[]
+     */
+    private $timers;
+
+    /**
      * Adds a read stream to the loop, and await it to be readable and non-blocking.
      *
      * @param resource $readStream
@@ -72,6 +79,14 @@ class Loop
     }
 
     /**
+     * @param Timer $timer
+     */
+    public function addTimer(Timer $timer)
+    {
+        $this->timers[] = $timer;
+    }
+
+    /**
      * Starts running the loop.
      */
     public function run()
@@ -83,6 +98,10 @@ class Loop
         $this->running = true;
 
         while ($this->running) {
+            foreach ($this->timers as $timer) {
+                $timer->tick();
+            }
+
             $this->pollStreams($this->readStreams, $this->writeStreams);
 
             // Prevent hogging the CPU to 100% if the loop isn't doing anything

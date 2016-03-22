@@ -60,6 +60,12 @@ class Server
 
         $this->listener = new Listener($configuration->port, $configuration->address, $configuration->backlog);
 
+        $timer = new Timer(function () {
+            echo 'cock';
+        }, 1, true);
+        $this->loop->addTimer($timer);
+        $timer->start();
+
         $this->listener->listen($this->loop)
             ->then(function (Connection $connection) {
                 $this->output->writeln('');
