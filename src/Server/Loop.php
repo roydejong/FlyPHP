@@ -79,6 +79,26 @@ class Loop
     }
 
     /**
+     * Completely removes a given a $stream from both read and write monitoring, as well as its registered callbacks.
+     *
+     * @param resource $stream
+     */
+    public function removeStream($stream)
+    {
+        $resourceId = intval($stream);
+
+        if (isset($this->writeStreams[$resourceId])) {
+            unset($this->writeStreams[$resourceId]);
+            unset($this->writeStreamsCallbacks[$resourceId]);
+        }
+
+        if (isset($this->readStreams[$resourceId])) {
+            unset($this->readStreams[$resourceId]);
+            unset($this->readStreamsCallbacks[$resourceId]);
+        }
+    }
+
+    /**
      * Adds a timer to the loop.
      *
      * @param Timer $timer
@@ -104,6 +124,24 @@ class Loop
         if ($key !== false) {
             unset($this->timers[$key]);
         }
+    }
+
+    /**
+     * Returns an array containing loop statistics.
+     *
+     * The array contains the following values:
+     *  -
+     *
+     * @return array
+     */
+    public function getStatistics()
+    {
+        return [
+            'running' => $this->running,
+            'timers' => count($this->timers),
+            'readStreams' => count($this->readStreams),
+            'writeStreams' => count($this->writeStreams)
+        ];
     }
 
     /**

@@ -145,6 +145,8 @@ class Connection
      */
     public function disconnect()
     {
+        $this->loop->removeStream($this->socket);
+
         if (!is_resource($this->socket)) {
             // Looks like this socket was already closed.
             return false;

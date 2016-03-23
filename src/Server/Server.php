@@ -60,10 +60,14 @@ class Server
 
         $this->listener = new Listener($configuration->port, $configuration->address, $configuration->backlog);
 
-        $testTimer = new Timer(1, true, function (Timer $timer) {
-            echo 'tick_test';
+        $that = $this;
+        $debugTimer = new Timer(3, true, function (Timer $timer) use ($that) {
+            $statistics = $that->loop->getStatistics();
+            $statistics['memoryUsage'] = round(memory_get_usage(true) / 1000000, 2) . 'mb';
+
+            echo PHP_EOL . http_build_query($statistics, '', ', ') . PHP_EOL;
         });
-        $testTimer->start($this->loop);
+        $debugTimer->start($this->loop);
 
         $this->listener->listen($this->loop)
             ->then(function (Connection $connection) {
