@@ -13,9 +13,18 @@ class MockWriteBuffer extends WriteBuffer
         parent::__construct(null, $size);
     }
 
+    public function clear($fo = true)
+    {
+        parent::clear();
+
+        if ($fo) {
+            $this->flushedOutput = '';
+        }
+    }
+
     public function flush()
     {
         $this->flushedOutput .= $this->contents();
-        $this->clear();
+        $this->clear(false);
     }
 }

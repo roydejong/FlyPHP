@@ -114,10 +114,10 @@ class TransactionHandler
      * Configures keep-alive configuration for this connection.
      *
      * @param bool $enable
-     * @param int $timeout
+     * @param float $timeout
      * @param int $limit
      */
-    public function setKeepAlive(bool $enable = false, int $timeout = 0, int $limit = 0)
+    public function setKeepAlive(bool $enable = false, float $timeout = 0, int $limit = 0)
     {
         $this->keepAliveEnabled = $enable;
         $this->keepAliveTimeout = $timeout;
