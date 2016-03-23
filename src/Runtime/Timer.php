@@ -1,6 +1,6 @@
 <?php
 
-namespace FlyPHP\Server;
+namespace FlyPHP\Runtime;
 
 /**
  * A timer, either with a set inteval or on a fixed timeout, that triggers a callback.

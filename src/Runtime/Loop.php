@@ -1,6 +1,6 @@
 <?php
 
-namespace FlyPHP\Server;
+namespace FlyPHP\Runtime;
 
 /**
  * An asynchronous loop based on event polling, which allows the server to operate in a synchronous, non-blocking way.
@@ -146,6 +146,8 @@ class Loop
 
     /**
      * Starts running the loop.
+     *
+     * @return bool False if the loop has not started, true if the loop has completed.
      */
     public function run()
     {
@@ -165,6 +167,8 @@ class Loop
             // Prevent hogging the CPU to 100% if the loop isn't doing anything
             usleep(1);
         }
+
+        return true;
     }
 
     /**
@@ -174,12 +178,11 @@ class Loop
      * @param array $readStreams Read streams to monitor.
      * @param array $writeStreams Write streams to monitor.
      * @param int $uTimeout Timeout in microseconds. If set to 0, this function will block indefinitely.
-     * @return int
      */
     private function pollStreams(array $readStreams, array $writeStreams, int $uTimeout = 200000)
     {
         if (empty($readStreams) && empty($writeStreams)) {
-            return 0;
+            return;
         }
 
         // Due to a limitation in the current Zend Engine it is not possible to pass a constant modifier
@@ -189,7 +192,7 @@ class Loop
 
         if ($selectValue === false || $selectValue <= 0) {
             // Either no streams have changed (0), or the select call was interrupted (false)
-            return 0;
+            return;
         }
 
         // The stream_select function has modified the $readStreams and $writeStreams arrays to only contain the

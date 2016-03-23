@@ -4,6 +4,7 @@ namespace FlyPHP\Server;
 
 use FlyPHP\IO\ReadBuffer;
 use FlyPHP\IO\WriteBuffer;
+use FlyPHP\Runtime\Loop;
 
 /**
  * Represents an incoming client connection.

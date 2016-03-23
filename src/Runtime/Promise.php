@@ -1,6 +1,6 @@
 <?php
 
-namespace FlyPHP\Promises;
+namespace FlyPHP\Runtime;
 
 /**
  * Represents a promise for a return value for asynchronous operations.

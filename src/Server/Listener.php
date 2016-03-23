@@ -2,7 +2,8 @@
 
 namespace FlyPHP\Server;
 
-use FlyPHP\Promises\Promise;
+use FlyPHP\Runtime\Loop;
+use FlyPHP\Runtime\Promise;
 
 /**
  * An asynchronous TCP socket listener that accepts incoming connections on an endpoint.

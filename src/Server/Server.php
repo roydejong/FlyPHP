@@ -1,9 +1,11 @@
 <?php
 
 namespace FlyPHP\Server;
+
 use FlyPHP\Config\ServerConfigSection;
-use FlyPHP\Http\Response;
 use FlyPHP\Http\TransactionHandler;
+use FlyPHP\Runtime\Loop;
+use FlyPHP\Runtime\Timer;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tests\Fixtures\DummyOutput;
 
@@ -61,7 +63,7 @@ class Server
         $this->listener = new Listener($configuration->port, $configuration->address, $configuration->backlog);
 
         $that = $this;
-        $debugTimer = new Timer(3, true, function (Timer $timer) use ($that) {
+        $debugTimer = new Timer(3, true, function () use ($that) {
             $statistics = $that->loop->getStatistics();
             $statistics['memoryUsage'] = round(memory_get_usage(true) / 1000000, 2) . 'mb';
 

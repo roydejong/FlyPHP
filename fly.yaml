@@ -3,3 +3,6 @@ server:
   address: 0.0.0.0
   backlog: 128
 
+http:
+  timeout:
+
