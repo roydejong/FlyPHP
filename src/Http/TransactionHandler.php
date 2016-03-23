@@ -139,8 +139,7 @@ class TransactionHandler
      */
     public function tick()
     {
-        if (!$this->connection->isReadable())
-        {
+        if (!$this->connection->isReadable()) {
             // The connection has died, clean up the transaction.
             $this->end();
             return;
@@ -165,7 +164,6 @@ class TransactionHandler
     {
         $this->transactionStarted = microtime(true);
 
-        // TODO Various encodings
         // TODO Handle multiparts
         // TODO Clean up and prevent leaky memory
         // TODO Handle excessive data spam
@@ -218,6 +216,13 @@ class TransactionHandler
         $response = new Response();
         $response->setHeader('Connection', $this->keepAlive ? 'keep-alive' : 'close');
         $response->setBody("Hello world!<br />Your user agent is <b>{$request->getHeader('user-agent')}</b>");
+
+        $compressionMethod = $this->server->getCompressionNegotiator()->negotiate($request);
+
+        if ($compressionMethod != null) {
+            $compressionMethod->compress($response);
+        }
+
         $response->send($this->connection);
 
         if (!$this->keepAlive) {

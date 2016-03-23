@@ -3,6 +3,7 @@
 namespace FlyPHP\Server;
 
 use FlyPHP\Config\ServerConfigSection;
+use FlyPHP\Http\Compression\CompressionNegotiator;
 use FlyPHP\Http\TransactionHandler;
 use FlyPHP\Runtime\Loop;
 use FlyPHP\Runtime\Timer;
@@ -44,6 +45,11 @@ class Server
     private $configuration;
 
     /**
+     * @var CompressionNegotiator
+     */
+    private $compressionNegotiator;
+
+    /**
      * Initializes a new server process.
      */
     public function __construct()
@@ -51,6 +57,7 @@ class Server
         $this->loop = new Loop();
         $this->output = new DummyOutput();
         $this->transactions = [];
+        $this->compressionNegotiator = new CompressionNegotiator();
     }
 
     /**
@@ -77,7 +84,8 @@ class Server
         $this->registerSignals();
 
         // Load configuration and begin accepting incoming connections
-        $this->configuration = $configuration;
+        $this->reloadConfig($configuration);
+
         $this->output->writeln("Starting server on port {$configuration->port}...");
 
         $this->listener = new Listener($configuration->port, $configuration->address, $configuration->backlog);
@@ -110,6 +118,17 @@ class Server
     }
 
     /**
+     * (Re)loads the server configuration data.
+     *
+     * @param ServerConfigSection $configSection
+     */
+    public function reloadConfig(ServerConfigSection $configSection)
+    {
+        $this->configuration = $configSection;
+        $this->compressionNegotiator->load($configSection);
+    }
+
+    /**
      * Handles a new incoming connection.
      *
      * @param Connection $connection
@@ -126,6 +145,14 @@ class Server
         $transaction->handle();
 
         $this->transactions[] = $transaction;
+    }
+
+    /**
+     * @return CompressionNegotiator
+     */
+    public function getCompressionNegotiator()
+    {
+        return $this->compressionNegotiator;
     }
 
     /**
