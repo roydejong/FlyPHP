@@ -30,6 +30,10 @@ class CompressionNegotiator
         if ($config->gzipEnabled) {
             $this->methods['gzip'] = new Gzip($config->gzipLevel);
         }
+
+        if ($config->deflateEnabled) {
+            $this->methods['deflate'] = new Deflate($config->deflateLevel);
+        }
     }
 
     /**

@@ -59,11 +59,26 @@ class ServerConfigSection extends ConfigSection
     public $gzipEnabled = true;
 
     /**
-     * The level of compression. Can be given as 1 for minimal compression up to 9 for maximum compression.
-     * If NULL or 0, the default compression level will be the default compression level of the zlib library.
+     * The level of compression. Can be given as 0 for no compression up to 9 for maximum compression.
      *
-     * @default 0
+     * @default 2
      * @var int
      */
     public $gzipLevel = 2;
+
+    /**
+     * If true, enable gzip compression for responses.
+     *
+     * @default true
+     * @var bool
+     */
+    public $deflateEnabled = true;
+
+    /**
+     * The level of compression. Can be given as 0 for no compression up to 9 for maximum compression.
+     *
+     * @default 2
+     * @var int
+     */
+    public $deflateLevel = 2;
 }

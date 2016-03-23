@@ -6,5 +6,8 @@ server:
   keepAliveTimeout: 15
   keepAliveLimit: 100
 
-  gzipEnabled: 1
+  gzipEnabled: 0
   gzipLevel: 2
+
+  deflateEnabled: 1
+  deflateLevel: 2
