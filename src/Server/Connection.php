@@ -40,12 +40,12 @@ class Connection
     /**
      * @var ReadBuffer
      */
-    private $readBuffer;
+    protected $readBuffer;
 
     /**
      * @var WriteBuffer
      */
-    private $writeBuffer;
+    protected $writeBuffer;
 
     /**
      * @param resource $socket

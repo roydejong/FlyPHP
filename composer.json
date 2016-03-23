@@ -12,9 +12,13 @@
     "symfony/console": "^3.0",
     "symfony/yaml": "3.0.x-dev"
   },
+  "require-dev": {
+    "phpunit/phpunit": "~4.0"
+  },
   "autoload": {
     "psr-4": {
-      "FlyPHP\\": "src/"
+      "FlyPHP\\": "src/",
+      "FlyPHP\\Tests\\": "tests/"
     }
   }
 }
