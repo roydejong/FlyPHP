@@ -4,6 +4,7 @@ namespace FlyPHP\Http;
 
 use FlyPHP\IO\ReadBuffer;
 use FlyPHP\Server\Connection;
+use FlyPHP\Server\Server;
 
 /**
  * This utility acts as a manager for a connection object.
@@ -11,6 +12,13 @@ use FlyPHP\Server\Connection;
  */
 class TransactionHandler
 {
+    /**
+     * The server instance hosting this transaction.
+     *
+     * @var Server
+     */
+    private $server;
+
     /**
      * @var Connection $connection
      */
@@ -49,6 +57,27 @@ class TransactionHandler
     private $keepAlive = false;
 
     /**
+     * Option: Enable keep-alive connections.
+     *
+     * @var bool
+     */
+    private $keepAliveEnabled = false;
+
+    /**
+     * Option: Timeout for keep-alive connections.
+     *
+     * @var int
+     */
+    private $keepAliveTimeout = 0;
+
+    /**
+     * Option: Limit of requests per single connection.
+     *
+     * @var int
+     */
+    private $keepAliveLimit = 0;
+
+    /**
      * The incoming request currently being parsed.
      *
      * @var Request
@@ -56,13 +85,77 @@ class TransactionHandler
     private $request;
 
     /**
+     * The amount of processed requests during this transaction.
+     *
+     * @var int
+     */
+    private $requestCounter;
+
+    /**
+     * Transaction start time, unix timestamp as a float.
+     *
+     * @var float
+     */
+    private $transactionStarted;
+
+    /**
      * Initializes a new transaction handler for a given connection.
      *
+     * @param Server $server
      * @param Connection $connection
      */
-    public function __construct(Connection $connection)
+    public function __construct(Server $server, Connection $connection)
     {
+        $this->server = $server;
         $this->connection = $connection;
+    }
+
+    /**
+     * Configures keep-alive configuration for this connection.
+     *
+     * @param bool $enable
+     * @param int $timeout
+     * @param int $limit
+     */
+    public function setKeepAlive(bool $enable = false, int $timeout = 0, int $limit = 0)
+    {
+        $this->keepAliveEnabled = $enable;
+        $this->keepAliveTimeout = $timeout;
+        $this->keepAliveLimit = $limit;
+    }
+
+    /**
+     * Gets the connection managed by this transaction.
+     *
+     * @return Connection
+     */
+    public function getConnection()
+    {
+        return $this->connection;
+    }
+
+    /**
+     * Ticks the transaction, checking for timeouts.
+     */
+    public function tick()
+    {
+        if (!$this->connection->isReadable())
+        {
+            // The connection has died, clean up the transaction.
+            $this->end();
+            return;
+        }
+
+        if ($this->keepAlive && $this->keepAliveTimeout > 0) {
+            $transactionTime = microtime(true) - $this->transactionStarted;
+
+            if ($transactionTime > $this->keepAliveTimeout) {
+                // This is a keep-alive connection that has timed out.
+                echo '< keep alive timeout reached >';
+                $this->end();
+                return;
+            }
+        }
     }
 
     /**
@@ -70,7 +163,8 @@ class TransactionHandler
      */
     public function handle()
     {
-        // TODO Handle timeouts
+        $this->transactionStarted = microtime(true);
+
         // TODO Various encodings
         // TODO Handle multiparts
         // TODO Clean up and prevent leaky memory
@@ -83,9 +177,20 @@ class TransactionHandler
                 $this->parseHttpRequest($buffer->contents());
             } catch (ParseException $ex) {
                 // TODO Send HTTP 400 error
-                $this->connection->disconnect();
+                echo '< parse error >';
+                $this->end();
+                return;
             }
         });
+    }
+
+    /**
+     * Ends the transaction, closing the connection and cleaning it up from the server.
+     */
+    public function end()
+    {
+        $this->connection->disconnect();
+        $this->server->endTransaction($this);
     }
 
     /**
@@ -95,9 +200,18 @@ class TransactionHandler
      */
     public function handleRequest(Request $request)
     {
-        if ($request->hasHeader('connection') && strtolower($request->getHeader('connection')) == 'keep-alive') {
+        // Check if keep-alive is enabled, and supported by the client
+        if ($this->keepAliveEnabled && $request->hasHeader('connection') && strtolower($request->getHeader('connection')) == 'keep-alive') {
             $this->keepAlive = true;
         } else {
+            $this->keepAlive = false;
+        }
+
+        $this->requestCounter++;
+
+        if ($this->keepAlive && $this->keepAliveLimit > 0 && $this->requestCounter >= $this->keepAliveLimit) {
+            // We have reached our limit for this keep-alive connection, disable keepalive
+            echo '< keep alive limit reached >';
             $this->keepAlive = false;
         }
 
@@ -107,7 +221,9 @@ class TransactionHandler
         $response->send($this->connection);
 
         if (!$this->keepAlive) {
-            $this->connection->disconnect();
+            // We are not keeping this connection alive (anymore).
+            $this->end();
+            return;
         }
     }
 
