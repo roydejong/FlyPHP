@@ -2,25 +2,6 @@
 
 class KeepAliveTest extends PHPUnit_Framework_TestCase
 {
-    public function testNoKeepAlive()
-    {
-        $server = new \FlyPHP\Tests\Mock\MockServer();
-        $connection = new \FlyPHP\Tests\Mock\MockConnection();
-
-        $handler = new \FlyPHP\Http\TransactionHandler($server, $connection);
-        $handler->handle();
-
-        $connection->mockReceiveData("GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
-
-        /**
-         * @var $writeBuffer \FlyPHP\Tests\Mock\MockWriteBuffer
-         */
-        $writeBuffer = $handler->getConnection()->getWriteBuffer();
-
-        $this->assertContains('Connection: close', $writeBuffer->flushedOutput, 'Connection should be closed');
-        $this->assertFalse($connection->isReadable(), 'Connection should be closed');
-    }
-
     public function testKeepAliveWithTimeout()
     {
         $server = new \FlyPHP\Tests\Mock\MockServer();
@@ -51,6 +32,52 @@ class KeepAliveTest extends PHPUnit_Framework_TestCase
         $writeBuffer->clear();
         $connection->mockReceiveData("GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
         $this->assertEmpty($writeBuffer->flushedOutput, 'Connection should be dead');
+        $this->assertFalse($connection->isReadable(), 'Connection should be closed');
+    }
+
+    /**
+     * @depends testKeepAliveWithTimeout
+     */
+    public function testKeepAliveIsIgnoredWithoutHeader()
+    {
+        $server = new \FlyPHP\Tests\Mock\MockServer();
+        $connection = new \FlyPHP\Tests\Mock\MockConnection();
+
+        $handler = new \FlyPHP\Http\TransactionHandler($server, $connection);
+        $handler->setKeepAlive(true, 100, 100);
+        $handler->handle();
+
+        $connection->mockReceiveData("GET / HTTP/1.1\r\n\r\n");
+
+        /**
+         * @var $writeBuffer \FlyPHP\Tests\Mock\MockWriteBuffer
+         */
+        $writeBuffer = $handler->getConnection()->getWriteBuffer();
+
+        $this->assertContains('Connection: close', $writeBuffer->flushedOutput, 'Connection should be closed');
+        $this->assertFalse($connection->isReadable(), 'Connection should be closed');
+    }
+
+    /**
+     * @depends testKeepAliveWithTimeout
+     * @depends testKeepAliveIsIgnoredWithoutHeader
+     */
+    public function testNoKeepAlive()
+    {
+        $server = new \FlyPHP\Tests\Mock\MockServer();
+        $connection = new \FlyPHP\Tests\Mock\MockConnection();
+
+        $handler = new \FlyPHP\Http\TransactionHandler($server, $connection);
+        $handler->handle();
+
+        $connection->mockReceiveData("GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
+
+        /**
+         * @var $writeBuffer \FlyPHP\Tests\Mock\MockWriteBuffer
+         */
+        $writeBuffer = $handler->getConnection()->getWriteBuffer();
+
+        $this->assertContains('Connection: close', $writeBuffer->flushedOutput, 'Connection should be closed');
         $this->assertFalse($connection->isReadable(), 'Connection should be closed');
     }
 
