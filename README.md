@@ -3,7 +3,7 @@
 FlyPHP
 ======
 
-**[flyphp.org](http://ww.flyphp.org)**
+**[flyphp.org](http://www.flyphp.org)**
 
 **An asychronous, non-blocking HTTP server, bootstrapper and process manager written in pure PHP that lets you supercharge your web applications.**
 
