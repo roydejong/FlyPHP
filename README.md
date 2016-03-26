@@ -3,6 +3,8 @@
 FlyPHP
 ======
 
+[![Build Status](https://travis-ci.org/roydejong/FlyPHP.svg?branch=master)](https://travis-ci.org/roydejong/FlyPHP)
+
 **[flyphp.org](http://www.flyphp.org)**
 
 **An asychronous, non-blocking HTTP server, bootstrapper and process manager written in pure PHP that lets you supercharge your web applications.**
