@@ -86,6 +86,14 @@ class TransactionHandler
     private $request;
 
     /**
+     * The last request that was handled.
+     *
+     * @default null
+     * @var Request
+     */
+    private $lastRequest;
+
+    /**
      * The amount of processed requests during this transaction.
      *
      * @var int
@@ -209,12 +217,24 @@ class TransactionHandler
     }
 
     /**
+     * Gets the the last handled request.
+     *
+     * @return Request
+     */
+    public function getLastRequest()
+    {
+        return $this->lastRequest;
+    }
+
+    /**
      * Handles an incoming HTTP request.
      *
      * @param Request $request
      */
     public function handleRequest(Request $request)
     {
+        $this->lastRequest = $request;
+
         // Handle "Expect" headers (e.g. for a 100 Continue transaction)
         // Note: We MUST either A) Send data and await further data, or B) end the connection when we are handling Expect
         $expectHeader = $request->getHeader('expect');

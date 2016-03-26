@@ -1,10 +1,38 @@
 <?php
 
 /**
- * Tests related to keep-alive connections, timeouts and limitations.
+ * Tests related to processing data with request bodies.
  */
 class PostRequestTest extends PHPUnit_Framework_TestCase
 {
+    public function testResponseBodyParsing()
+    {
+        $server = new \FlyPHP\Tests\Mock\MockServer();
+        $connection = new \FlyPHP\Tests\Mock\MockConnection();
+
+        $handler = new \FlyPHP\Http\TransactionHandler($server, $connection);
+        $handler->handle();
+
+        // Step one: send our request and response body
+        $testPostContent = 'abcdefghijklmnopqrstuvwxyz';
+
+        $testRequest = 'POST / HTTP/1.1' . "\r\n";
+        $testRequest .= 'Content-Length: ' . strlen($testPostContent) . "\r\n";
+        $testRequest .= "\r\n";
+        $testRequest .= $testPostContent;
+
+        $connection->mockReceiveData($testRequest);
+
+        // Step two: the server should respond with something
+        /**
+         * @var $writeBuffer \FlyPHP\Tests\Mock\MockWriteBuffer
+         */
+        $writeBuffer = $handler->getConnection()->getWriteBuffer();
+
+        $this->assertNotEmpty($writeBuffer->flushedOutput, 'After sending a response body, a response should be given by the server');
+        $this->assertEquals($testPostContent, $handler->getLastRequest()->getBody(), 'Response body should be parsed and read correctly');
+    }
+
     public function testHttp100Continue()
     {
         $server = new \FlyPHP\Tests\Mock\MockServer();
@@ -38,7 +66,4 @@ class PostRequestTest extends PHPUnit_Framework_TestCase
         $this->assertNotEmpty($writeBuffer->flushedOutput, 'After sending a response body, post 100 continue, a response should be given by the server');
         $this->assertNotContains('100 Continue', $writeBuffer->flushedOutput, 'No further continue should be sent, post 100 continue body transmission');
     }
-
-    
-
 }
