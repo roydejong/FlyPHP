@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Tests related to keep-alive connections, timeouts and limitations.
+ */
 class KeepAliveTest extends PHPUnit_Framework_TestCase
 {
     public function testKeepAliveWithTimeout()

@@ -99,6 +99,15 @@ class TransactionHandler
     private $transactionStarted;
 
     /**
+     * Flag indicating whether we are handling a HTTP/Expect 100-continue scenario.
+     * The flag is toggled ON when we have just sent a HTTP/1.1 100 Continue header and are awaiting a response body.
+     * The flag is toggled OFF when we begin processing a new request.
+     *
+     * @var bool
+     */
+    private $handlingContinue;
+
+    /**
      * Initializes a new transaction handler for a given connection.
      *
      * @param Server $server
@@ -173,6 +182,7 @@ class TransactionHandler
         $this->connection->getReadBuffer()->subscribe(function (ReadBuffer $buffer) {
             try {
                 $this->parseHttpRequest($buffer->contents());
+                $buffer->clear();
             } catch (ParseException $ex) {
                 // TODO Send HTTP 400 error
                 echo '< parse error >';
@@ -198,6 +208,24 @@ class TransactionHandler
      */
     public function handleRequest(Request $request)
     {
+        // Handle 100 Continue
+        $expectHeader = $request->getHeader('expect');
+
+        if (!empty($expectHeader)) {
+            if (!$this->handlingContinue && $expectHeader == '100-continue') {
+                $this->handlingContinue = true;
+                $this->connection->write('HTTP/1.1 100 Continue' . Response::HTTP_EOL);
+                var_dump($this->request);
+                return;
+            } else {
+                // Either we have already sent a 100 Continue, or we got an invalid/unsupported expect header
+                // Either way, we will blame the client with a 400 error
+                // TODO Throw 400 error
+                $this->end();
+                return;
+            }
+        }
+
         // Check if keep-alive is enabled, and supported by the client
         if ($this->keepAliveEnabled && $request->hasHeader('connection') && strtolower($request->getHeader('connection')) == 'keep-alive') {
             $this->keepAlive = true;
@@ -235,6 +263,9 @@ class TransactionHandler
     /**
      * Performs line-by-line parsing of an incoming request.
      *
+     * This function can be called multiple times, once for each time any data is received, and will incrementally try
+     * to read and parse the received data and construct a valid request.
+     *
      * @param string $data
      * @throws ParseException
      */
@@ -242,14 +273,19 @@ class TransactionHandler
     {
         $originalData = $data;
 
-        // Check if we are parsing a new message, or if we are continuing to parse a request we previously started
-        // parsing.
+        // Check if we are parsing a new message, or if we are continuing to parse a request we previously started parsing.
         if (!$this->isParsing) {
+            echo PHP_EOL . '/startnewparse/' . PHP_EOL;
             $this->isParsing = true;
+
             $this->parseOffset = 0;
-            $this->request = new Request();
             $this->parsingFirstLine = true;
             $this->parsingHeaders = true;
+            $this->parsingBody = false;
+
+            $this->request = new Request();
+
+            $this->handlingContinue = false;
         }
 
         // Parse headers line-by-line
