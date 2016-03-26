@@ -167,7 +167,7 @@ class TransactionHandler
         // TODO Handle multiparts
         // TODO Clean up and prevent leaky memory
         // TODO Handle excessive data spam
-        // TODO HTTPv2 / SPDY
+        // TODO (Wishful thinking) HTTPv2 / SPDY
         // TODO (Wishful thinking) HTTPS / TLS
 
         $this->connection->getReadBuffer()->subscribe(function (ReadBuffer $buffer) {
