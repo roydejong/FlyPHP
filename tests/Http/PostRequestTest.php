@@ -107,4 +107,30 @@ class PostRequestTest extends PHPUnit_Framework_TestCase
         $this->assertNotEmpty($writeBuffer->flushedOutput, 'After sending a response body, post 100 continue, a response should be given by the server');
         $this->assertNotContains('100 Continue', $writeBuffer->flushedOutput, 'No further continue should be sent, post 100 continue body transmission');
     }
+
+    public function testBogusExpectsResultInError()
+    {
+        $server = new \FlyPHP\Tests\Mock\MockServer();
+        $connection = new \FlyPHP\Tests\Mock\MockConnection();
+
+        $handler = new \FlyPHP\Http\TransactionHandler($server, $connection);
+        $handler->handle();
+
+        // Step one: send just the headers, with a content-length, post method and an Expect header
+        $testPostContent = 'abcdefghijklmnopqrstuvwxyz';
+
+        $testRequestHeaders = 'POST / HTTP/1.1' . "\r\n";
+        $testRequestHeaders .= 'Content-Length: ' . strlen($testPostContent) . "\r\n";
+        $testRequestHeaders .= 'Expect: 200-ok' . "\r\n";
+        $testRequestHeaders .= "\r\n";
+
+        $connection->mockReceiveData($testRequestHeaders);
+
+        // Step two: the server should respond with an expectation not met error
+        /**
+         * @var $writeBuffer \FlyPHP\Tests\Mock\MockWriteBuffer
+         */
+        $writeBuffer = $handler->getConnection()->getWriteBuffer();
+        $this->assertContains('417 Expectation Failed', $writeBuffer->flushedOutput);
+    }
 }

@@ -100,7 +100,7 @@ class Server
             $statistics['memoryUsage'] = round(memory_get_usage(true) / 1000000, 2) . 'mb';
             $statistics['transactions'] = count($that->transactions);
 
-            echo PHP_EOL . http_build_query($statistics, '', ', ') . PHP_EOL;
+            echo  PHP_EOL . '[Stats] ' . http_build_query($statistics, '', ', ') . PHP_EOL;
         });
         $debugTimer->start($this->loop);
 

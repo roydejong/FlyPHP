@@ -5,7 +5,7 @@ namespace FlyPHP\Http;
 use FlyPHP\IO\ReadBuffer;
 use FlyPHP\Server\Connection;
 use FlyPHP\Server\Server;
-use Symfony\Component\Yaml\Exception\ParseException;
+use FlyPHP\Http\Responses\ErrorResponse;
 
 /**
  * This utility acts as a manager for a connection object.
@@ -191,8 +191,8 @@ class TransactionHandler
             try {
                 $this->parseHttpRequest($buffer->contents());
             } catch (ParseException $ex) {
-                // TODO Send HTTP 400 error
-                $this->end();
+                // Send a 400 bad request response, and kill the connection to avoid getting stuck in a bad state
+                $this->sendErrorResponse(StatusCode::HTTP_BAD_REQUEST, true);
                 return;
             }
         });
@@ -217,6 +217,46 @@ class TransactionHandler
     }
 
     /**
+     * Ends the current part of the transaction by marking the current request being parsed as "complete".
+     * This puts the transaction handler in a state where it expects a new request will be received.
+     * If the connection is not set to be kept alive, this will result in the transaction's end.
+     */
+    public function endParse()
+    {
+        $this->isParsing = false;
+
+        if (!$this->keepAlive) {
+            $this->end();
+        }
+    }
+
+    /**
+     * Sends an error response.
+     *
+     * @param int $statusCode
+     * @param bool $killConnection
+     */
+    public function sendErrorResponse(int $statusCode = StatusCode::HTTP_BAD_REQUEST, bool $killConnection = false)
+    {
+        $response = new ErrorResponse($statusCode);
+
+        if ($killConnection) {
+            $this->keepAlive = false;
+            $response->setHeader('Connection', 'close');
+        } else if ($this->keepAlive) {
+            $response->setHeader('Connection', 'keep-alive');
+        }
+
+        $response->send($this->connection);
+
+        if ($killConnection) {
+            $this->end();
+        } else {
+            $this->endParse();
+        }
+    }
+
+    /**
      * Gets the the last handled request.
      *
      * @return Request
@@ -233,7 +273,20 @@ class TransactionHandler
      */
     public function handleRequest(Request $request)
     {
+        $this->requestCounter++;
         $this->lastRequest = $request;
+
+        // Check if keep-alive is enabled, and supported by the client
+        if ($this->keepAliveEnabled && $request->hasHeader('connection') && strtolower($request->getHeader('connection')) == 'keep-alive') {
+            $this->keepAlive = true;
+        } else {
+            $this->keepAlive = false;
+        }
+
+        if ($this->keepAlive && $this->keepAliveLimit > 0 && $this->requestCounter >= $this->keepAliveLimit) {
+            // We have reached our limit for this keep-alive connection, disable keepalive
+            $this->keepAlive = false;
+        }
 
         // Handle "Expect" headers (e.g. for a 100 Continue transaction)
         // Note: We MUST either A) Send data and await further data, or B) end the connection when we are handling Expect
@@ -246,25 +299,10 @@ class TransactionHandler
                 return;
             } else {
                 // Either we have already sent a 100 Continue, or we got an invalid/unsupported expect header
-                // Either way, we will blame the client with a 400 error
-                // TODO Throw 417 (Expectation Failed) error
-                $this->end();
+                // Either way, we will blame the client with a 416 error and stop processing this request
+                $this->sendErrorResponse(StatusCode::HTTP_EXPECTATION_FAILED);
                 return;
             }
-        }
-
-        // Check if keep-alive is enabled, and supported by the client
-        if ($this->keepAliveEnabled && $request->hasHeader('connection') && strtolower($request->getHeader('connection')) == 'keep-alive') {
-            $this->keepAlive = true;
-        } else {
-            $this->keepAlive = false;
-        }
-
-        $this->requestCounter++;
-
-        if ($this->keepAlive && $this->keepAliveLimit > 0 && $this->requestCounter >= $this->keepAliveLimit) {
-            // We have reached our limit for this keep-alive connection, disable keepalive
-            $this->keepAlive = false;
         }
 
         $response = new Response();
