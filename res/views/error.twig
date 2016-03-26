@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <title>Error</title>
+    <style>
+        @import url(https://fonts.googleapis.com/css?family=Montserrat:400,700);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            border: 0;
+            text-decoration: none;
+        }
+        body {
+            background: url('http://i.giphy.com/D12CsrRNv7gL6.gif') no-repeat center center fixed;
+            background-size: 100% 100%;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .error {
+            background: rgba(0, 0, 0, 0.75);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+        }
+        .drop-shadow {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 250px;
+            width: 100%;
+            background: -moz-linear-gradient(top,  rgba(0,0,0,0.65) 0%, rgba(0,0,0,0) 100%); /* FF3.6-15 */
+            background: -webkit-linear-gradient(top,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 100%); /* Chrome10-25,Safari5.1-6 */
+            background: linear-gradient(to bottom,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 100%);
+            z-index: 200;
+        }
+        .text {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            color: #fff;
+            text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.25);
+            font-size: 24px;
+            z-index: 300;
+            text-align: left;
+            text-transform: uppercase;
+            position: relative;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .accent {
+            color: #f1c40f;
+            margin-bottom: 50px;
+        }
+        a {
+            display: inline-block;
+            font-size: 50%;
+            color: #ccc;
+            text-transform: none;
+            font-weight: 100;
+            margin-top: 50px;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="error">
+
+        <div class="drop-shadow"></div>
+
+        <div class="text">
+
+            <h1 class="accent">Error {{ errorCode }}</h1>
+            <h1>Something went<br />wrong here.</h1>
+            <h1><a href="/">Try returning to the homepage</a></h1>
+
+        </div>
+
+    </div>
+</body>
+</html>

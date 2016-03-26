@@ -305,9 +305,8 @@ class TransactionHandler
             }
         }
 
-        $response = new Response();
+        $response = new ErrorResponse(StatusCode::HTTP_NOT_FOUND);
         $response->setHeader('Connection', $this->keepAlive ? 'keep-alive' : 'close');
-        $response->setBody("Hello world!<br />Your user agent is <b>{$request->getHeader('user-agent')}</b>");
 
         $compressionMethod = $this->server->getCompressionNegotiator()->negotiate($request);
 

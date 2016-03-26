@@ -4,6 +4,7 @@ namespace FlyPHP\Http\Responses;
 
 use FlyPHP\Http\Response;
 use FlyPHP\Http\StatusCode;
+use FlyPHP\Rendering\ErrorView;
 
 /**
  * Server error response.
@@ -25,6 +26,10 @@ class ErrorResponse extends Response
         }
 
         $this->setStatus($errorCode, $errorMessage == null ? StatusCode::getMessageForCode($errorCode) : $errorMessage);
-        $this->setBody("error {$errorCode} {$errorMessage}");
+
+        if (StatusCode::canHaveBody($errorCode)) {
+            $errorPage = new ErrorView($errorCode);
+            $errorPage->output($this);
+        }
     }
 }
