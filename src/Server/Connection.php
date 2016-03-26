@@ -168,7 +168,7 @@ class Connection
      */
     public function getRemoteAddress()
     {
-        return stream_socket_get_name($this->socket, null);
+        return stream_socket_get_name($this->socket, true);
     }
 
     /**
