@@ -3,10 +3,11 @@ server:
   address: 0.0.0.0
   backlog: 128
 
+  keepAlive: 1
   keepAliveTimeout: 15
   keepAliveLimit: 100
 
-  gzipEnabled: 0
+  gzipEnabled: 1
   gzipLevel: 2
 
   deflateEnabled: 1

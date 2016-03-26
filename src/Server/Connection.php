@@ -21,7 +21,7 @@ class Connection
      * The size of the write buffer in bytes.
      * Represents how often data is flushed to the connection.
      */
-    static $WRITE_BUFFER_SIZE = 10;
+    static $WRITE_BUFFER_SIZE = 1024;
 
     /**
      * The socket resource.
