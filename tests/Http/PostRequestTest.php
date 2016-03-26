@@ -5,7 +5,7 @@
  */
 class PostRequestTest extends PHPUnit_Framework_TestCase
 {
-    public function testResponseBodyParsing()
+    public function testRequestBodyParsing()
     {
         $server = new \FlyPHP\Tests\Mock\MockServer();
         $connection = new \FlyPHP\Tests\Mock\MockConnection();
@@ -33,6 +33,47 @@ class PostRequestTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($testPostContent, $handler->getLastRequest()->getBody(), 'Response body should be parsed and read correctly');
     }
 
+    /**
+     * @depends testRequestBodyParsing
+     */
+    public function testChunkedRequestParsing()
+    {
+        $server = new \FlyPHP\Tests\Mock\MockServer();
+        $connection = new \FlyPHP\Tests\Mock\MockConnection();
+
+        $handler = new \FlyPHP\Http\TransactionHandler($server, $connection);
+        $handler->handle();
+
+        // Step one: send our request and response body
+        $testPostContent = 'abcdefghijklmnopqrstuvwxyz';
+
+        $testRequest = 'POST / HTTP/1.1' . "\r\n";
+        $testRequest .= 'Content-Length: ' . strlen($testPostContent) . "\r\n";
+        $testRequest .= "\r\n";
+        $testRequest .= $testPostContent;
+
+        // We actually split our test request up in to chunks, each 10 characters in length
+        // We then feed 10 characters at a time, each time the request parser will get to work and parse what it can
+        // Eventually, we should end up with a fully parsed request :-)
+        $parts = str_split($testRequest, 10);
+
+        foreach ($parts as $part) {
+            $connection->mockReceiveData($part);
+        }
+
+        // Step two: the server should respond with something
+        /**
+         * @var $writeBuffer \FlyPHP\Tests\Mock\MockWriteBuffer
+         */
+        $writeBuffer = $handler->getConnection()->getWriteBuffer();
+
+        $this->assertEquals($testPostContent, $handler->getLastRequest()->getBody(), 'Response body should be parsed and read correctly');
+        $this->assertNotEmpty($writeBuffer->flushedOutput, 'After sending a response body, a response should be given by the server');
+    }
+
+    /**
+     * @depends testChunkedRequestParsing
+     */
     public function testHttp100Continue()
     {
         $server = new \FlyPHP\Tests\Mock\MockServer();

@@ -390,6 +390,9 @@ class TransactionHandler
 
                 $this->request->appendBody($dataReceived);
                 $remainingContentLength -= $dataReceivedLength;
+
+                // We eat the entire buffer, every time. Yummy. Reset pointer and buffer contents.
+                $this->clearReadBuffer();
             }
 
             if ($remainingContentLength <= 0) {
