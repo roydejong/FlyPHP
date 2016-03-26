@@ -28,7 +28,7 @@ Usage
 
 Clone FlyPHP from GitHub to fetch the latest version (while it's still in development):
 
-    git clone git@github.com:roydejong/FlyPHP.git flyphp
+    git clone https://github.com/roydejong/FlyPHP.git flyphp
     cd flyphp
 
 Install the composer dependencies:
@@ -36,6 +36,8 @@ Install the composer dependencies:
     composer install
 
 This command assumes you have installed composer to a system bin folder. If you haven't used composer before, [download and install it](https://getcomposer.org/download/) with the command `php composer-setup.php --install-dir=/usr/bin --filename=composer`.
+
+Note: If you do not wish to install the development components (such as PHPUnit), use `composer install --no-dev`.
 
 **Starting the server**
 
