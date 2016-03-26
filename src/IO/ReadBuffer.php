@@ -28,7 +28,6 @@ class ReadBuffer
      */
     public function feed(string $data)
     {
-        echo $data;
         $this->contents .= $data;
 
         // Notify all subscribers that this buffer has changed
