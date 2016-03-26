@@ -1,3 +1,5 @@
+:warning: **Important:** This project is still under development and is not ready for any kind of usage. It's a playground, nothing more. Move along, nothing to see here yet.
+
 FlyPHP
 ======
 
@@ -53,7 +55,7 @@ To stop the server, simply terminate the main process. An interrupt will also (`
 
 Performance
 -----------
-FlyPHP is faster than `php-fpm`. Benchmarks coming soon.
+FlyPHP is faster than `php-fpm`. That's the idea, anyway. Benchmarks coming soon.
 
 Troubleshooting
 ---------------
