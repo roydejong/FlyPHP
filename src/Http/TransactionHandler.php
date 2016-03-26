@@ -5,6 +5,7 @@ namespace FlyPHP\Http;
 use FlyPHP\IO\ReadBuffer;
 use FlyPHP\Server\Connection;
 use FlyPHP\Server\Server;
+use Symfony\Component\Yaml\Exception\ParseException;
 
 /**
  * This utility acts as a manager for a connection object.
@@ -159,7 +160,6 @@ class TransactionHandler
 
             if ($transactionTime > $this->keepAliveTimeout) {
                 // This is a keep-alive connection that has timed out.
-                echo '< keep alive timeout reached >';
                 $this->end();
                 return;
             }
@@ -182,14 +182,21 @@ class TransactionHandler
         $this->connection->getReadBuffer()->subscribe(function (ReadBuffer $buffer) {
             try {
                 $this->parseHttpRequest($buffer->contents());
-                $buffer->clear();
             } catch (ParseException $ex) {
                 // TODO Send HTTP 400 error
-                echo '< parse error >';
                 $this->end();
                 return;
             }
         });
+    }
+
+    /**
+     * Completely resets the read buffer.
+     */
+    private function clearReadBuffer()
+    {
+        $this->connection->getReadBuffer()->clear();
+        $this->parseOffset = 0;
     }
 
     /**
@@ -208,19 +215,19 @@ class TransactionHandler
      */
     public function handleRequest(Request $request)
     {
-        // Handle 100 Continue
+        // Handle "Expect" headers (e.g. for a 100 Continue transaction)
+        // Note: We MUST either A) Send data and await further data, or B) end the connection when we are handling Expect
         $expectHeader = $request->getHeader('expect');
 
         if (!empty($expectHeader)) {
             if (!$this->handlingContinue && $expectHeader == '100-continue') {
                 $this->handlingContinue = true;
                 $this->connection->write('HTTP/1.1 100 Continue' . Response::HTTP_EOL);
-                var_dump($this->request);
                 return;
             } else {
                 // Either we have already sent a 100 Continue, or we got an invalid/unsupported expect header
                 // Either way, we will blame the client with a 400 error
-                // TODO Throw 400 error
+                // TODO Throw 417 (Expectation Failed) error
                 $this->end();
                 return;
             }
@@ -237,7 +244,6 @@ class TransactionHandler
 
         if ($this->keepAlive && $this->keepAliveLimit > 0 && $this->requestCounter >= $this->keepAliveLimit) {
             // We have reached our limit for this keep-alive connection, disable keepalive
-            echo '< keep alive limit reached >';
             $this->keepAlive = false;
         }
 
@@ -275,7 +281,6 @@ class TransactionHandler
 
         // Check if we are parsing a new message, or if we are continuing to parse a request we previously started parsing.
         if (!$this->isParsing) {
-            echo PHP_EOL . '/startnewparse/' . PHP_EOL;
             $this->isParsing = true;
 
             $this->parseOffset = 0;
@@ -338,10 +343,43 @@ class TransactionHandler
 
         // Parse body
         if ($this->parsingBody) {
-            // TODO Parse request bodies
-            // For now, we'll just pretend we're done
-            $this->isParsing = false;
-            $this->handleRequest($this->request);
+            if ($this->request->getHeader('expect') != null) {
+                // We have an expect header. Only parse the headers, and let the request handler determine what to do.
+                // Request handler should either abort the connection, or cause further data to be sent.
+                // Either way, end request processing at this stage (but not parsing) and reset the read buffer.
+                $this->isParsing = true;
+                $this->handleRequest($this->request);
+                $this->clearReadBuffer();
+                // Remove the "Expect" header as we have processed it and it is no longer indicative for the request.
+                $this->request->removeHeader('expect');
+                return;
+            }
+
+            // Determine how large the request body is
+            $expectedContentLength = intval($this->request->getHeader('content-length'));
+            $previouslyReceivedContentLength = strlen($this->request->getBody());
+            $remainingContentLength = $expectedContentLength - $previouslyReceivedContentLength;
+
+            if ($remainingContentLength > 0) {
+                $dataReceived = substr($originalData, $this->parseOffset);
+                $dataReceivedLength = strlen($dataReceived);
+
+                if ($dataReceivedLength > $remainingContentLength) {
+                    throw new ParseException('Content-Length mismatch');
+                }
+
+                $this->request->appendBody($dataReceived);
+                $remainingContentLength -= $dataReceivedLength;
+            }
+
+            if ($remainingContentLength <= 0) {
+                // We have received all the data we expected to receive in this request
+                // Consider the request complete, end processing and parsing, and reset the buffer
+                $this->isParsing = false;
+                $this->handleRequest($this->request);
+                $this->clearReadBuffer();
+                return;
+            }
         }
     }
 }
