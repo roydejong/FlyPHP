@@ -142,6 +142,7 @@ class Server
         $transaction = new TransactionHandler($this, $connection);
         $transaction->setKeepAlive($this->configuration->keepAliveTimeout > 0, $this->configuration->keepAliveTimeout,
             $this->configuration->keepAliveLimit);
+        $transaction->setChunkedEncoding($this->configuration->chunkedEnabled, $this->configuration->chunkedMaxSize);
         $transaction->handle();
 
         $this->transactions[] = $transaction;

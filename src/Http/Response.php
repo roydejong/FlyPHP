@@ -138,7 +138,11 @@ class Response extends HttpMessage
             $this->setHeader('Content-Type', 'text/html');
         }
 
-        $this->setHeader('Content-Length', strlen($this->getBody()));
+        if (!$this->hasHeader('Content-Length') && !$this->hasHeader('Transfer-Encoding')) {
+            // No manual Content-Length was set, and there is no special Transfer-Encoding
+            // Automatically determine this header based on the body length
+            $this->setHeader('Content-Length', strlen($this->getBody()));
+        }
     }
 
     /**

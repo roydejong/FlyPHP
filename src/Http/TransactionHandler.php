@@ -2,6 +2,7 @@
 
 namespace FlyPHP\Http;
 
+use FlyPHP\Http\Encoding\ChunkedTransferEncoding;
 use FlyPHP\IO\ReadBuffer;
 use FlyPHP\Server\Connection;
 use FlyPHP\Server\Server;
@@ -79,6 +80,20 @@ class TransactionHandler
     private $keepAliveLimit = 0;
 
     /**
+     * Option: Enable chunked transfer-encoding.
+     *
+     * @var bool
+     */
+    private $chunkedTransferEnabled = false;
+
+    /**
+     * Option: Chunked transfer encoding, chunk size.
+     *
+     * @var int
+     */
+    private $chunkedSize = 0;
+
+    /**
      * The incoming request currently being parsed.
      *
      * @var Request
@@ -129,7 +144,7 @@ class TransactionHandler
     }
 
     /**
-     * Configures keep-alive configuration for this connection.
+     * Configures keep-alive configuration for this transaction.
      *
      * @param bool $enable
      * @param float $timeout
@@ -140,6 +155,18 @@ class TransactionHandler
         $this->keepAliveEnabled = $enable;
         $this->keepAliveTimeout = $timeout;
         $this->keepAliveLimit = $limit;
+    }
+
+    /**
+     * Configures chunked transfer encoding for this transaction.
+     *
+     * @param bool $enable
+     * @param int $chunkSize
+     */
+    public function setChunkedEncoding(bool $enable = false, int $chunkSize = 0)
+    {
+        $this->chunkedTransferEnabled = $enable;
+        $this->chunkedSize = $chunkSize;
     }
 
     /**
@@ -314,7 +341,20 @@ class TransactionHandler
             $compressionMethod->compress($response);
         }
 
-        $response->send($this->connection);
+        $sent = false;
+
+        if ($this->chunkedTransferEnabled && $this->chunkedSize > 0) {
+            $chunked = new ChunkedTransferEncoding($this->connection);
+
+            if ($chunked->isSupported($request)) {
+                $chunked->sendChunkedResponse($response);
+                $sent = true;
+            }
+        }
+
+        if (!$sent) {
+            $response->send($this->connection);
+        }
 
         if (!$this->keepAlive) {
             // We are not keeping this connection alive (anymore).

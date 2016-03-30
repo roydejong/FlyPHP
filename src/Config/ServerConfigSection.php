@@ -81,4 +81,18 @@ class ServerConfigSection extends ConfigSection
      * @var int
      */
     public $deflateLevel = 2;
+
+    /**
+     * If true, enable chunked transfer encoding.
+     *
+     * @var int
+     */
+    public $chunkedEnabled = true;
+
+    /**
+     * The maximum size per chunk, in bytes.
+     *
+     * @var int
+     */
+    public $chunkedMaxSize = 128;
 }
