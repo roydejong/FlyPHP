@@ -347,7 +347,7 @@ class TransactionHandler
             $chunked = new ChunkedTransferEncoding($this->connection);
 
             if ($chunked->isSupported($request)) {
-                $chunked->sendChunkedResponse($response);
+                $chunked->sendChunkedResponse($response, $this->chunkedSize);
                 $sent = true;
             }
         }

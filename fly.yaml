@@ -12,3 +12,6 @@ server:
 
   deflateEnabled: 1
   deflateLevel: 2
+
+  chunkedEnabled: 1
+  chunkedMaxSize: 64
