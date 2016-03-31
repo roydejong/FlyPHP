@@ -53,6 +53,14 @@ class Server
     private $compressionNegotiator;
 
     /**
+     * Flag that tracks whether the server is shutting down.
+     *
+     * @default false
+     * @var bool
+     */
+    private $shuttingDown;
+
+    /**
      * Initializes a new server process.
      */
     public function __construct()
@@ -101,6 +109,8 @@ class Server
      */
     public function start(ServerConfigSection $configuration)
     {
+        $this->shuttingDown = false;
+
         // Load configuration and begin accepting incoming connections
         $this->reloadConfig($configuration);
 
@@ -116,6 +126,9 @@ class Server
         (new DebugStatistics($this))->start($this->loop);
         (new TransactionTicker($this))->start($this->loop);
         (new PcntlSignals($this))->start($this->loop);
+
+        // Register emergency shutdown function
+        register_shutdown_function([$this, 'stop']);
 
         // Finally, begin running our process loop
         $this->loop->run();
@@ -182,6 +195,12 @@ class Server
      */
     public function stop()
     {
+        if ($this->shuttingDown) {
+            return;
+        }
+
+        $this->shuttingDown = true;
+        
         $this->output->writeln("Shutting down server.");
 
         // Shut down the main event loop, so no more read/write operations or timers will be fired
@@ -217,6 +236,7 @@ class Server
             default:
 
                 $this->output->writeln('<error>Unknown pctnl signal received</error>');
+                break;
         }
     }
 }
