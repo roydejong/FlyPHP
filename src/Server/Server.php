@@ -7,6 +7,8 @@ use FlyPHP\Http\Compression\CompressionNegotiator;
 use FlyPHP\Http\TransactionHandler;
 use FlyPHP\Runtime\Loop;
 use FlyPHP\Runtime\Timer;
+use FlyPHP\Server\Timers\DebugStatistics;
+use FlyPHP\Server\Timers\TransactionTicker;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tests\Fixtures\DummyOutput;
 
@@ -61,6 +63,26 @@ class Server
     }
 
     /**
+     * Gets the server event loop.
+     *
+     * @return Loop
+     */
+    public function getLoop()
+    {
+        return $this->loop;
+    }
+
+    /**
+     * Gets an array of currently active transactions.
+     *
+     * @return TransactionHandler[]
+     */
+    public function getTransactions()
+    {
+        return $this->transactions;
+    }
+
+    /**
      * Registers the output interface for this server process.
      *
      * @param OutputInterface $output
@@ -78,8 +100,6 @@ class Server
      */
     public function start(ServerConfigSection $configuration)
     {
-        $that = $this;
-
         // Register process control signals (CTRL+C etc) to handle graceful shutdown
         $this->registerSignals();
 
@@ -94,27 +114,13 @@ class Server
                 $this->handleIncomingConnection($connection);
             });
 
-        // Start the debug timer, using this during development to make sure we're not being too leaky
-        $debugTimer = new Timer(3, true, function () use ($that) {
-            $statistics = $that->loop->getStatistics();
-            $statistics['memoryUsage'] = round(memory_get_usage(true) / 1000000, 2) . 'mb';
-            $statistics['transactions'] = count($that->transactions);
-
-            echo  PHP_EOL . '[Stats] ' . http_build_query($statistics, '', ', ') . PHP_EOL;
-        });
-        $debugTimer->start($this->loop);
-
-        // Start the transaction ticker, which handles transaction cleanup and timeouts
-        $transactionTicker = new Timer(1, true, function () use ($that) {
-            foreach ($that->transactions as $transaction) {
-                $transaction->tick();
-            }
-        });
-        $transactionTicker->start($this->loop);
+        // Start core timers
+        (new DebugStatistics($this))->start($this->loop);
+        (new TransactionTicker($this))->start($this->loop);
 
         // Finally, begin running our process loop
         $this->loop->run();
-        $that->output->writeln("The server process loop has ended.");
+        $this->output->writeln("The server process loop has ended.");
     }
 
     /**
