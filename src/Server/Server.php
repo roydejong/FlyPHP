@@ -8,6 +8,7 @@ use FlyPHP\Http\TransactionHandler;
 use FlyPHP\Runtime\Loop;
 use FlyPHP\Runtime\Timer;
 use FlyPHP\Server\Timers\DebugStatistics;
+use FlyPHP\Server\Timers\PcntlSignals;
 use FlyPHP\Server\Timers\TransactionTicker;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tests\Fixtures\DummyOutput;
@@ -100,9 +101,6 @@ class Server
      */
     public function start(ServerConfigSection $configuration)
     {
-        // Register process control signals (CTRL+C etc) to handle graceful shutdown
-        $this->registerSignals();
-
         // Load configuration and begin accepting incoming connections
         $this->reloadConfig($configuration);
 
@@ -117,10 +115,12 @@ class Server
         // Start core timers
         (new DebugStatistics($this))->start($this->loop);
         (new TransactionTicker($this))->start($this->loop);
+        (new PcntlSignals($this))->start($this->loop);
 
         // Finally, begin running our process loop
         $this->loop->run();
-        $this->output->writeln("The server process loop has ended.");
+
+        $this->output->writeln("Event loop stopped.");
     }
 
     /**
@@ -177,18 +177,6 @@ class Server
     }
 
     /**
-     * Registers server process signals.
-     */
-    private function registerSignals()
-    {
-        if (!function_exists('pcntl_signal')) {
-            return;
-        }
-
-        // ...
-    }
-
-    /**
      * Attempts to stop the server.
      * This is an asynchronous operation that should result in the process shutting down within a few seconds.
      */
@@ -206,5 +194,29 @@ class Server
         }
 
         // Hopefully we've shut down okay
+    }
+
+    /**
+     * Handles a PCNTL signal.
+     *
+     * @param int $signal The received pcntl signal
+     */
+    public function handleSignal($signal)
+    {
+        $this->output->writeln('');
+        $this->output->writeln("<comment>Received signal {$signal}</comment>");
+
+        switch ($signal) {
+            case SIGKILL:
+            case SIGINT:
+            case SIGTERM:
+
+                $this->stop();
+                break;
+
+            default:
+
+                $this->output->writeln('<error>Unknown pctnl signal received</error>');
+        }
     }
 }
