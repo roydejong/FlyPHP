@@ -145,6 +145,18 @@ class Loop
     }
 
     /**
+     * Cycles the event loop.
+     */
+    public function cycle()
+    {
+        foreach ($this->timers as $timer) {
+            $timer->tick();
+        }
+
+        $this->pollStreams($this->readStreams, $this->writeStreams);
+    }
+
+    /**
      * Starts running the loop.
      *
      * @return bool False if the loop has not started, true if the loop has completed.
@@ -158,11 +170,7 @@ class Loop
         $this->running = true;
 
         while ($this->running) {
-            foreach ($this->timers as $timer) {
-                $timer->tick();
-            }
-
-            $this->pollStreams($this->readStreams, $this->writeStreams);
+            $this->cycle();
 
             // Prevent hogging the CPU to 100% if the loop isn't doing anything
             usleep(1);
