@@ -17,7 +17,7 @@ class Timer
      *
      * @var callable
      */
-    private $callback;
+    protected $callback;
 
     /**
      * Timer start timestamp.
@@ -25,35 +25,35 @@ class Timer
      *
      * @var float
      */
-    private $startTime;
+    protected $startTime;
 
     /**
      * The timer run time or interval, in seconds.
      *
      * @var float
      */
-    private $runTime;
+    protected $runTime;
 
     /**
      * Flag indicating whether the timer is currently running.
      *
      * @var bool
      */
-    private $started;
+    protected $started;
 
     /**
      * Flag indicating whether the timer is a repeating interval timer.
      *
      * @var bool
      */
-    private $repeating;
+    protected $repeating;
 
     /**
      * The loop instance this timer is running on.
      *
      * @var Loop
      */
-    private $loop;
+    protected $loop;
 
     /**
      * Timer constructor.
