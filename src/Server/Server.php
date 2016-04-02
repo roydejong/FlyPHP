@@ -92,6 +92,16 @@ class Server
     }
 
     /**
+     * Returns the output stream for the server.
+     *
+     * @return OutputInterface
+     */
+    public function getOutput()
+    {
+        return $this->output;
+    }
+
+    /**
      * Registers the output interface for this server process.
      *
      * @param OutputInterface $output
@@ -200,7 +210,7 @@ class Server
         }
 
         $this->shuttingDown = true;
-        
+
         $this->output->writeln("Shutting down server.");
 
         // Shut down the main event loop, so no more read/write operations or timers will be fired
