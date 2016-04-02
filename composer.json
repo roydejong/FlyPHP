@@ -1,6 +1,6 @@
 {
-  "name": "flyphp/flyphp",
-  "description": "HTTP Server for PHP",
+  "name": "fly-php/fly",
+  "description": "The PHP Supercharger",
   "license": "MIT",
   "authors": [
     {
