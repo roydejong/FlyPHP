@@ -210,7 +210,7 @@ class Server
         }
 
         $this->shuttingDown = true;
-        
+
         $this->output->writeln("Shutting down server.");
 
         // Shut down the main event loop, so no more read/write operations or timers will be fired

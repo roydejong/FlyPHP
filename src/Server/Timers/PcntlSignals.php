@@ -33,8 +33,7 @@ class PcntlSignals extends Timer
      */
     public function start(Loop $loop)
     {
-        if (!$this->isSupported())
-        {
+        if (!$this->isSupported()) {
             $this->server->getOutput()->writeln('<comment>Warning: Your system does not support pcntl signals.</comment>');
             return;
         }
