@@ -92,6 +92,16 @@ class Server
     }
 
     /**
+     * Returns the output stream for the server.
+     *
+     * @return OutputInterface
+     */
+    public function getOutput()
+    {
+        return $this->output;
+    }
+
+    /**
      * Registers the output interface for this server process.
      *
      * @param OutputInterface $output
