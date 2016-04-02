@@ -2,6 +2,8 @@
 
 namespace FlyPHP\Runtime;
 
+use FlyPHP\Util\ArraySearch;
+
 /**
  * An asynchronous loop based on event polling, which allows the server to operate in a synchronous, non-blocking way.
  * This implementation is based on stream select.
@@ -105,7 +107,7 @@ class Loop
      */
     public function addTimer(Timer $timer)
     {
-        $key = array_search($timer, $this->timers);
+        $key = ArraySearch::findObject($timer, $this->timers);
 
         if ($key === false) {
             $this->timers[] = $timer;
@@ -119,7 +121,7 @@ class Loop
      */
     public function removeTimer(Timer $timer)
     {
-        $key = array_search($timer, $this->timers);
+        $key = ArraySearch::findObject($timer, $this->timers);
 
         if ($key !== false) {
             unset($this->timers[$key]);
