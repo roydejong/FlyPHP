@@ -5,6 +5,7 @@ namespace FlyPHP;
 use FlyPHP\Commands\ConfigTestCommand;
 use FlyPHP\Commands\StartCommand;
 use FlyPHP\Config\Configuration;
+use FlyPHP\Daemon\ProcessManager;
 use Symfony\Component\Console\Application;
 
 /**
@@ -21,13 +22,23 @@ class Fly
     private $application;
 
     /**
-     * Fly, to the sky!
+     * @var Configuration
      */
-    public function fly()
+    private $config;
+
+    /**
+     * Fly constructor.
+     */
+    public function __construct()
     {
         // Set the working directory to the fly install directory
         if (!defined('FLY_DIR')) {
             define('FLY_DIR', realpath(__DIR__ . '/../'));
+        }
+
+        // Set OS constant
+        if (!defined('IS_WIN')) {
+            define('IS_WIN', strtoupper(substr(PHP_OS, 0, 3)) === 'WIN');
         }
 
         // Try to configure a better process title
@@ -42,6 +53,22 @@ class Fly
             setproctitle('fly');
         }
 
+        // Load configuration file
+        $this->config = Configuration::instance();
+        $this->config->loadFrom(FLY_DIR . '/fly.yaml');
+
+        if (!$this->config->isValid()) {
+            echo "WARNING: There is a problem with your configuration file ({$this->config->getPath()}): {$this->config->getError()} - falling back to defaults." . PHP_EOL;
+            echo "For more information, use the `fly config:test` command." . PHP_EOL;
+            echo PHP_EOL;
+        }
+    }
+
+    /**
+     * Fly, to the sky!
+     */
+    public function fly()
+    {
         // Configure the console application
         $this->application = new Application();
         $this->application->setName('FlyPHP');
@@ -56,19 +83,17 @@ class Fly
             new ConfigTestCommand()
         ]);
 
-        // Load configuration file
-        $config = Configuration::instance();
-        $config->loadFrom(FLY_DIR . '/fly.yaml');
-
-        if (!$config->isValid()) {
-            echo "WARNING: There is a problem with your configuration file ({$config->getPath()}): {$config->getError()} - falling back to defaults." . PHP_EOL;
-            echo "For more information, use the `fly config:test` command." . PHP_EOL;
-            echo PHP_EOL;
-
-        }
-
         // Start the console application
         $this->application->run();
+    }
+
+    /**
+     * Starts the Fly process manager daemon.
+     */
+    public function daemonize()
+    {
+        $processManager = new ProcessManager($this->config->daemonConfig);
+        $processManager->start();
     }
 
     /**

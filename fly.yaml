@@ -15,3 +15,9 @@ server:
 
   chunkedEnabled: 0
   chunkedMaxSize: 64
+
+daemon:
+  minChildren: 5
+  maxChildren: 10
+  childLifetime: 0
+  portRangeStart: 9001

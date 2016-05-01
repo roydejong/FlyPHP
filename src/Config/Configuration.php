@@ -68,6 +68,11 @@ class Configuration
     public $serverConfig;
 
     /**
+     * @var DaemonConfigSection
+     */
+    public $daemonConfig;
+
+    /**
      * Initializes a new, blank configuration file.
      */
     public function __construct()
@@ -78,6 +83,7 @@ class Configuration
         $this->path = 'fly.yaml';
 
         $this->serverConfig = new ServerConfigSection();
+        $this->daemonConfig = new DaemonConfigSection();
     }
 
     /**
@@ -131,6 +137,10 @@ class Configuration
 
         if (isset($this->data['server'])) {
             $this->serverConfig->fill($this->data['server']);
+        }
+
+        if (isset($this->data['daemon'])) {
+            $this->daemonConfig->fill($this->data['daemon']);
         }
 
         $this->isValid = true;

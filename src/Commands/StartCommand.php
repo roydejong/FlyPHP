@@ -23,7 +23,8 @@ class StartCommand extends Command
     {
         $this->setName('start')
             ->setDescription('Start the FlyPHP server')
-            ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'TCP Port number to listen on (defaults to 8080)');
+            ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'TCP Port number to listen on (defaults to 8080)')
+            ->addOption('daemon-child', null, InputOption::VALUE_NONE, 'Indicates this instance is spawned as a child process');
     }
 
     /**
