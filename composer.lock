@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "34bde97d3283f8dd5db4c848186133d9",
-    "content-hash": "d23bd3088d6e74f3494c9ee0af7c9b07",
+    "hash": "03872f499831a3c2cc481ab72ecd4868",
+    "content-hash": "33f889eb11862d0a26def7dfa507f240",
     "packages": [
         {
             "name": "psr/log",
@@ -235,25 +235,31 @@
         },
         {
             "name": "symfony/yaml",
-            "version": "3.0.x-dev",
+            "version": "v3.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "2a9101d2bfee061caa0f978c9c4e6a84d5eaed96"
+                "reference": "9724c684646fcb5387d579b4bfaa63ee0b0c64c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/2a9101d2bfee061caa0f978c9c4e6a84d5eaed96",
-                "reference": "2a9101d2bfee061caa0f978c9c4e6a84d5eaed96",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/9724c684646fcb5387d579b4bfaa63ee0b0c64c8",
+                "reference": "9724c684646fcb5387d579b4bfaa63ee0b0c64c8",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.5.9"
             },
+            "require-dev": {
+                "symfony/console": "~2.8|~3.0"
+            },
+            "suggest": {
+                "symfony/console": "For validating YAML files using the lint command"
+            },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.0-dev"
+                    "dev-master": "3.2-dev"
                 }
             },
             "autoload": {
@@ -280,7 +286,7 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
-            "time": "2016-07-17 13:54:30"
+            "time": "2017-02-16 22:46:52"
         },
         {
             "name": "twig/twig",
@@ -1405,9 +1411,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "symfony/yaml": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

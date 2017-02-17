@@ -9,8 +9,8 @@
     }
   ],
   "require": {
-    "symfony/console": "^3.0",
-    "symfony/yaml": "3.0.x-dev",
+    "symfony/console": ">=3.0",
+    "symfony/yaml": ">=3.0",
     "twig/twig": ">=2.1"
   },
   "require-dev": {
