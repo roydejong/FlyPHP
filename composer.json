@@ -11,7 +11,7 @@
   "require": {
     "symfony/console": "^3.0",
     "symfony/yaml": "3.0.x-dev",
-    "twig/twig": "~1.0"
+    "twig/twig": ">=2.1"
   },
   "require-dev": {
     "phpunit/phpunit": "~4.0"
